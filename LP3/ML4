@@ -1,0 +1,26 @@
+def f(x):
+  return (x+3)**2
+
+def der(x):
+  return 2*(x+3)
+
+
+gd = []
+
+def gradiend_descent(starting, learning_rate, iter):
+  x = starting
+  gd.append(starting)
+  for i in range(iter):
+    grad = der(x)
+    x = x - learning_rate * grad
+    gd.append(x)
+    print(f"{i+1} : {x} : {f(x)}")  
+  return x
+
+
+mini_x = gradiend_descent(2, 0.2, 50)
+print(mini_x)
+
+
+import seaborn as sns
+sns.scatterplot(gd)

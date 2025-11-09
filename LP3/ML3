@@ -1,0 +1,56 @@
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout
+from sklearn.metrics import accuracy_score, confusion_matrix
+
+
+df = pd.read_csv("Churn_Modelling.csv")
+df.head()
+
+df = df.drop(['RowNumber', 'CustomerId', 'Surname'], axis = 1)
+df
+
+le = LabelEncoder()
+
+df['Gender'] = le.fit_transform(df['Gender'])
+df['Geography'] = le.fit_transform(df['Geography'])
+
+
+
+x = df.drop('Exited', axis = 1)
+y = df['Exited']
+
+
+
+scaller = StandardScaler()
+xtrain, xtest, ytrain, ytest = train_test_split(x, y, test_size= 0.2)
+xscalled = scaller.fit_transform(xtrain)
+xscaller_test = scaller.transform(xtest)
+
+
+
+#creating Neural network
+model = Sequential()
+
+model.add(Dense(activation='relu', units= 32, input_dim=xscalled.shape[1]))
+model.add(Dropout(0.5))
+model.add(Dense(activation='relu', units=16))
+model.add(Dense(activation='sigmoid', units=1))
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+
+
+
+model.fit(xscalled, ytrain, batch_size=32, epochs=50)
+
+
+pred = model.predict(xscaller_test)
+pred = (pred > 0.5)
+pred
+
+
+
+print(accuracy_score(ytest, pred))
+print(confusion_matrix(ytest, pred))

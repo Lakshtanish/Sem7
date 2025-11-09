@@ -1,0 +1,38 @@
+ import pandas as pd
+ from sklearn.neighbors import KNeighborsClassifier
+ from sklearn.svm import SVC
+ from sklearn.model_selection import train_test_split
+ from sklearn import metrics
+ from sklearn.preprocessing import scale
+
+
+
+
+df = pd.read_csv("emails.csv")
+df.drop('Email No.', axis = 1, inplace = True)
+df.head()
+
+df.isnull().sum()
+
+x = df.drop('Prediction', axis = 1)
+y = df['Prediction']
+
+
+xscalled = scale(x)
+xtrain, xtest, ytrain, ytest = train_test_split(xscalled, y, test_size=0.3, random_state=42)
+
+#KNN
+knn = KNeighborsClassifier(n_neighbors=7)
+knn.fit(xtrain, ytrain)
+pred = knn.predict(xtest)
+print(metrics.accuracy_score(ytest, pred))
+print(metrics.confusion_matrix(ytest, pred))
+
+
+#SVC
+svmModel = SVC(C=1)
+svmModel.fit(xtrain, ytrain)
+predict = svmModel.predict(xtest)
+print(metrics.accuracy_score(ytest, pred))
+print(metrics.confusion_matrix(ytest, pred))
+

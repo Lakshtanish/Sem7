@@ -1,0 +1,44 @@
+import pandas as pd
+import seaborn as sns
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+
+
+df = pd.read_csv("sales_data_sample.csv", encoding="unicode_escape")
+df.head()
+
+
+df.isnull().sum()
+
+df.dropna(inplace=True)
+
+x = df[['QUANTITYORDERED', 'SALES', 'PRICEEACH']]
+
+
+std = StandardScaler()
+x = std.fit_transform(x)
+
+
+K = range(1, 11)
+inertia = []
+
+for k in K:
+  kmean = KMeans(n_clusters=k, random_state=42)
+  kmean.fit(x)
+  inertia.append(kmean.inertia_)
+
+
+
+plt.figure(figsize=(8,6))
+plt.plot(K, inertia, 'bo-')
+plt.show()
+
+kmean = KMeans(n_clusters = 4, random_state=42)
+df['Cluster'] = kmean.fit_predict(x)
+
+df[['SALES', 'Cluster', 'PRICEEACH', 'QUANTITYORDERED']]
+
+
+
+

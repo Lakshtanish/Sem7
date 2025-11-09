@@ -1,0 +1,130 @@
+!pip install haversine
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+import haversine as hs
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import r2_score, mean_squared_error
+
+
+
+df = pd.read_csv("uber.csv")
+df.head()
+
+
+
+df.drop(["Unnamed: 0", "key"], axis = 1, inplace=True)
+
+
+df.head()
+
+
+df.isnull().sum()
+
+
+
+df['dropoff_longitude'].fillna(value = df['dropoff_longitude'].mean(), inplace = True)
+df['dropoff_latitude'].fillna(value = df['dropoff_latitude'].mean(), inplace = True)
+
+
+
+
+df.isnull().sum()
+df.dropna(inplace=True)
+
+
+df.isnull().sum()
+
+
+df.pickup_datetime = pd.to_datetime(df.pickup_datetime, errors = 'coerce')
+df.dtypes
+
+df = df.assign(
+    hour = df.pickup_datetime.dt.hour,
+    day = df.pickup_datetime.dt.day,
+    month = df.pickup_datetime.dt.month,
+    year = df.pickup_datetime.dt.year,
+    dayofweek = df.pickup_datetime.dt.dayofweek
+)
+df = df.drop('pickup_datetime', axis = 1)
+df.head()
+
+
+df.plot(kind="box", subplots=True, layout=(7,2), figsize=(15, 20))
+
+
+
+#removing outliers
+def removeOutliers(df1, column):
+  Q1 = df1[column].quantile(0.25)
+  Q3 = df1[column].quantile(0.75)
+  iqr = Q3 - Q1
+  lower = Q1 - 1.5*iqr
+  upper = Q3 + 1.5*iqr
+  df[column] = np.clip(df1[column], lower, upper)
+  return df1
+
+def treatOutliers(df1, columns):
+  for c in columns:
+    df1 = removeOutliers(df, c)
+  return df1
+
+df = treatOutliers(df, df.iloc[:, 0::])
+df.plot(kind="box", subplots=True, layout=(7,2), figsize=(15, 20))
+
+
+
+
+travel_dist = []
+for p in range(len(df['pickup_latitude'])):
+  long1, lat1, long2, lat2 = [df['pickup_longitude'][p], df['pickup_latitude'][p], df['dropoff_longitude'][p], df['dropoff_latitude'][p]]
+  c = hs.haversine((lat1, long1), (lat2, long2))
+  travel_dist.append(c)
+
+print(travel_dist)
+df['travel_dist'] = travel_dist
+df.head()
+
+
+
+df.isnull().sum()
+
+
+
+sns.heatmap(df.corr())
+
+
+
+x = df[['pickup_longitude','pickup_latitude','dropoff_longitude','dropoff_latitude','passenger_count','hour','day','month','year','dayofweek','travel_dist']]
+y = df['fare_amount']
+
+
+xtrain, xtest, ytrain, ytest = train_test_split(x, y, test_size=0.33, random_state=42)
+#lineaar regression
+lmodel = LinearRegression()
+lmodel.fit(xtrain, ytrain)
+predicted = lmodel.predict(xtest)
+print(predicted)
+
+
+
+r2 = r2_score(ytest, predicted)
+rms = np.sqrt(mean_squared_error(ytest, predicted))
+print(r2, rms)
+
+from google.colab import drive
+drive.mount('/content/drive')
+
+rmodel = RandomForestRegressor(n_estimators=1)
+rmodel.fit(xtrain, ytrain)
+pred = rmodel.predict(xtest)
+
+r2 = r2_score(ytest, pred)
+rm = np.sqrt(mean_squared_error(ytest, pred))
+print(r2, rm)
+
+
