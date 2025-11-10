@@ -1,98 +1,109 @@
-//n - queens
-#include <iostream>
-#include <vector>
+#include <bits/stdc++.h>
 using namespace std;
 
-class NQueen{
-    private:
-        vector<string> board;
-        int queenRow;
-        int queenCol;
+int COL;
+int ROW;
+int N = 4;
 
-    public:
-        NQueen(int n, int qR, int qC){
-            board.assign(n, string(n, '.'));
-            this->queenCol = qC;
-            this->queenRow = qR;
-            board[qR][qC] = 'Q';
-        }
+void printSolution(vector<vector<int>> board) {
+  for (int i = 0; i < N; i++) {
+    for (int j = 0; j < N; j++)
+      if (board[i][j])
+        cout << "Q ";
+      else
+        cout << ". ";
+    printf("\n");
+  }
+}
 
-        bool isSafe(int row, int col){
-            int n = board.size();
-            if(row == queenRow || col == queenCol) return false;
+bool isSafe(vector<vector<int>> board, int row, int col) {
+  int i, j;
 
-            //horizontal
-            for(int i = 0; i < n; i++){
-                if(i == col) continue;
-                if(board[row][i] == 'Q'){
-                    return false;
-                }
-            }
+  // horizontal
+  for (i = 0; i < col; i++)
+    if (board[row][i])
+      return false;
 
-            //vertical
-            for(int i = 0; i < n; i++){
-                if(i == row) continue;
-                if(board[i][col] == 'Q'){
-                    return false;
-                }
-            }
+  // vertical
+  for (i = col + 1; i < N; i++)
+    if (board[row][i])
+      return false;
 
-            // top -right diagnol
-            for(int i = row - 1, j = col + 1; i >= 0 && j < n; i--, j++){
-                if(board[i][j] == 'Q'){
-                    return false;
-                }
-            }
+  // bottom right diagonal
+  for (i = row, j = col; i < N && j < N; i++, j++)
+    if (board[i][j])
+      return false;
 
-            // top-left
-            for(int i = row-1, j = col - 1; i >= 0 && j >= 0; i--, j--){
-                if(board[i][j] == 'Q') return false;
-            }
+  // bottom left diagonal
+  for (i = row, j = col; i >= 0 && j < N; i--, j++)
+    if (board[i][j])
+      return false;
 
-            //bottom-right
-            for(int i = row+1, j = col + 1; i < n && j < n; i++, j++){
-                if(board[i][j] == 'Q') return false;
-            }
+  for (i = row, j = col; i >= 0 && j >= 0; i--, j--)
+    if (board[i][j])
+      return false;
 
-            //bottom-left
-            for(int i = row+1, j = col-1; i < n && j >= 0; i++, j--){
-                if(board[i][j] == 'Q') return false;
-            }
+  for (i = row, j = col; j >= 0 && i < N; i++, j--)
+    if (board[i][j])
+      return false;
 
-            return true;
-        }
+  return true;
+}
 
-        bool solve(int row){
-            if(row >= board.size()) return true;
-            if(row == queenRow){
-                return solve(row+1);
-            }
-            for(int col = 0; col < board.size(); col++){
-                if(isSafe(row, col)){
-                    board[row][col] = 'Q';
-                    if(solve(row + 1) == true){
-                        return true;
-                    }
-                    board[row][col] = '.';
-                }
-            }
-            return false;
-        }
+bool solveNQUtil(vector<vector<int>> &board, int col) {
 
-        void printBoard(){
-            int n = board.size();
-            for(int i = 0; i < n; i++){
-                for(int j = 0; j < n; j++){
-                    cout<<board[i][j]<<"\t";
-                }
-                cout<<"\n";
-            }
-        }
-};
+  if (col >= N)
+    return true;
 
-int main(){
-    //creating board with first queen already placed
-    NQueen q(4, 0, 0);
-    q.solve(0);
-    q.printBoard();
+  if (col == COL) {
+    if (solveNQUtil(board, col + 1))
+      return true;
+    else {
+      return false;
+    }
+  }
+
+  else {
+    for (int i = 0; i < N; i++) {
+      if (isSafe(board, i, col)) {
+        board[i][col] = 1;
+
+        if (solveNQUtil(board, col + 1))
+          return true;
+
+        board[i][col] = 0;
+      }
+    }
+  }
+
+  return false;
+}
+
+bool solveNQ() {
+  cout << "Enter size of board: ";
+  cin >> N;
+  cout << "Enter row and col of first queen to be placed:\nrow (1-" << N
+       << "): ";
+  cin >> ROW;
+  ROW--;
+  cout << "\ncol(1-" << N << "): ";
+  cin >> COL;
+  COL--;
+  cout << endl;
+  vector<vector<int>> board(N, vector<int>(N, 0));
+
+  board[ROW][COL] = 1;
+
+  if (solveNQUtil(board, 0) == false) {
+    cout << "Solution does not exist";
+    return false;
+  }
+
+  printSolution(board);
+  return true;
+}
+
+int main() {
+  solveNQ();
+  return 0;
 }
